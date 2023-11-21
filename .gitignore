@@ -1,0 +1,11 @@
+_squirtle
+*bundle*
+_client
+.soroban
+.sccache
+target
+.DS_Store
+node_modules
+.vscode
+Cargo.lock
+*.txt
