@@ -15,6 +15,7 @@ pub enum Error{
   InvalidAmount = 4,
   InvalidTimestamp = 5,
   InvalidAssociation = 6,
+  AlreadyInitialized = 7,
 }
 
 #[contracttype]
@@ -252,6 +253,13 @@ impl DistributionTrait for DistributionContract{
     deadline: u64,
   ) -> Result<(), Error>{
     admin.require_auth();
+    if env.storage().instance().has(&StorageConst::AdminAddress) {
+      log!(
+        &env,
+        "Something went wrong, the contract is already initizalized."
+      );
+      return Err(Error::AlreadyInitialized);
+    }
     let act_ledger = get_ledger_timestamp(&env);
     if deadline < act_ledger{
       log!(

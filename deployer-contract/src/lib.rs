@@ -18,6 +18,7 @@ pub enum Error{
   AlreadyWithdrawn = 5,
   InvalidAssociation = 6,
   InvalidTimestamp = 7,
+  AlreadyInitialized = 8,
 }
 
 #[contracttype]
@@ -410,6 +411,13 @@ impl VotingTrait for VotingContract {
     contract_transfer: Address,
   ) -> Result<(), Error> {
     admin.require_auth();
+    if env.storage().instance().has(&StorageConst::AdminAddress) {
+      log!(
+        &env,
+        "Something went wrong, the contract is already initizalized."
+      );
+      return Err(Error::AlreadyInitialized);
+    }
     let act_ledger = get_ledger_timestamp(&env);
     if deadline < act_ledger{
       log!(
@@ -555,13 +563,14 @@ impl VotingTrait for VotingContract {
       );
       return Err(Error::InvalidTimestamp);
     }
-    if amount < 0 {
+    if amount <= 0 {
       log!(
         &env,
-        "Something went wrong, the amount is less than 0."
+        "Something went wrong, the amount is 0 or less than 0."
       );
       return Err(Error::InvalidAmount);
     }
+    sender.require_auth();
     let mut mutable_assoc: Vec<Association> = get_associations(&env);
     let mut total_amount: i128 = get_total(&env);
     total_amount += amount as i128;
